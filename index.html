@@ -1,17 +1,77 @@
-<!-- START CODE Attention! Do not modify this code; -->
-<script>
-var fm = "USD";
-var to = "BTC,EUR,USD,ARS,USDT";
-var tz = "timezone";
-var sz = "1x238";
-var lg = "es";
-var st = "success";
-var cd = 1;
-var am = 1;
-</script>
-<script src="//currencyrate.today/exchangerates"></script>
-<div style="text-align:right">
-  <a href="https://currencyrate.today">CurrencyRate</a>
-</div>
-<!-- Attention! Do not modify this code; END CODE -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>USDT Binance (USD / ARS)</title>
+  <style>
+    body {
+      font-family: "Inter", Arial, sans-serif;
+      background: #0b0b0b;
+      color: #fff;
+      text-align: center;
+      padding: 40px;
+    }
+    .card {
+      display: inline-block;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: 20px 40px;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+      max-width: 360px;
+      background: #111;
+    }
+    h1 {
+      font-size: 1.4em;
+      margin-bottom: 24px;
+      color: #f3ba2f;
+    }
+    .price {
+      font-size: 2em;
+      font-weight: 700;
+      margin: 10px 0;
+    }
+    .sub {
+      font-size: 0.85em;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>💰 Valor del USDT (Binance)</h1>
+    <div id="usd" class="price">Cargando...</div>
+    <div id="ars" class="price"></div>
+    <div class="sub" id="time"></div>
+  </div>
 
+  <script>
+    async function actualizar() {
+      try {
+        // ✅ Par alternativo (Binance no tiene USDTUSD)
+        const resUsd = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=BUSDUSDT");
+        const dataUsd = await resUsd.json();
+        const usdtUsd = parseFloat(dataUsd.price);
+
+        // ✅ Precio real USDTARS (existe en Binance)
+        const resArs = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=USDTARS");
+        const dataArs = await resArs.json();
+        const usdtArs = parseFloat(dataArs.price);
+
+        // Mostrar resultados
+        document.getElementById("usd").textContent = `$${usdtUsd.toFixed(3)} USD`;
+        document.getElementById("ars").textContent = `$${usdtArs.toFixed(2)} ARS`;
+
+        // Mostrar hora actual
+        const hora = new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+        document.getElementById("time").textContent = `Última actualización: ${hora}`;
+      } catch (e) {
+        document.getElementById("usd").textContent = "Error al cargar datos";
+        console.error("Error:", e);
+      }
+    }
+
+    actualizar();
+    setInterval(actualizar, 300000); // cada 5 min
+  </script>
+</body>
+</html>
