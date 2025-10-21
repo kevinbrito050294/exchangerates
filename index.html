@@ -1,59 +1,143 @@
-<div class="card">
-  <h1>💰 Valor del USDT (Binance)</h1>
-  <div id="usd" class="price">Cargando...</div>
-  <div id="ars" class="price"></div>
-  <div class="sub" id="time"></div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>USDT ↔ ARS Widget</title>
+<style>
+  body {
+    font-family: "Inter", Arial, sans-serif;
+    background: #0b0b0b;
+    color: #fff;
+    text-align: center;
+    padding: 40px;
+  }
+  .card {
+    display: inline-block;
+    border: 1px solid #222;
+    border-radius: 16px;
+    padding: 20px 40px;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+    max-width: 360px;
+    background: #111;
+  }
+  h1 {
+    font-size: 1.4em;
+    margin-bottom: 24px;
+    color: #f3ba2f;
+  }
+  .price {
+    font-size: 2em;
+    font-weight: 700;
+    margin: 10px 0;
+  }
+  .sub {
+    font-size: 0.85em;
+    color: #aaa;
+  }
+  input {
+    width: 120px;
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+    text-align: right;
+    margin: 5px;
+    font-size: 1em;
+  }
+  .calc-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+  }
+  span {
+    font-size: 1em;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>💰 USDT ↔ ARS (Binance)</h1>
+    <div id="usd" class="price">Cargando...</div>
+    <div id="ars" class="price"></div>
+    <div class="sub" id="time"></div>
 
-  <hr style="margin: 20px 0; border-color: #333;">
+    <hr style="margin:20px 0; border-color:#333;">
 
-  <h2>Calculadora USDT ↔ ARS</h2>
-  <div style="margin:10px 0;">
-    <input id="inputUsdt" type="number" placeholder="USDT" style="width:120px; padding:5px; border-radius:6px; border:none; text-align:right;">
-    <span>USDT =</span>
-    <input id="outputArs" type="number" placeholder="ARS" style="width:120px; padding:5px; border-radius:6px; border:none; text-align:right;" readonly>
+    <h2>Calculadora</h2>
+
+    <div class="calc-row">
+      <input id="inputUsdt" type="text" placeholder="USDT">
+      <span>=</span>
+      <input id="outputArs" type="text" placeholder="ARS" readonly>
+    </div>
+
+    <div class="calc-row">
+      <input id="inputArs" type="text" placeholder="ARS">
+      <span>=</span>
+      <input id="outputUsdt" type="text" placeholder="USDT" readonly>
+    </div>
   </div>
-  <div style="margin:10px 0;">
-    <input id="inputArs" type="number" placeholder="ARS" style="width:120px; padding:5px; border-radius:6px; border:none; text-align:right;">
-    <span>ARS =</span>
-    <input id="outputUsdt" type="number" placeholder="USDT" style="width:120px; padding:5px; border-radius:6px; border:none; text-align:right;" readonly>
-  </div>
-</div>
 
 <script>
-  let usdtArs = 0; // guardará el valor actual
+let usdtArs = 0;
 
-  async function actualizar() {
-    try {
-      const resArs = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=USDTARS");
-      const dataArs = await resArs.json();
-      usdtArs = parseFloat(dataArs.price);
+// Función para actualizar precios
+async function actualizar() {
+  try {
+    const resArs = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=USDTARS");
+    const dataArs = await resArs.json();
+    usdtArs = parseFloat(dataArs.price);
 
-      document.getElementById("usd").textContent = `$1 USD`;
-      document.getElementById("ars").textContent = `$${usdtArs.toFixed(2)} ARS`;
+    document.getElementById("usd").textContent = `$1 USD`;
+    document.getElementById("ars").textContent = `$${usdtArs.toFixed(2)} ARS`;
 
-      const hora = new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
-      document.getElementById("time").textContent = `Última actualización: ${hora}`;
-    } catch (e) {
-      document.getElementById("usd").textContent = "Error al cargar datos";
-      console.error("Error:", e);
-    }
+    const hora = new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+    document.getElementById("time").textContent = `Última actualización: ${hora}`;
+
+    // Actualiza la calculadora si ya hay valores
+    actualizarCalculadora();
+  } catch (e) {
+    document.getElementById("usd").textContent = "Error al cargar datos";
+    console.error("Error:", e);
   }
+}
 
-  actualizar();
-  setInterval(actualizar, 300000); // cada 5 min
-
-  // Funcionalidad calculadora
+// Función para actualizar inputs de calculadora
+function actualizarCalculadora() {
   const inputUsdt = document.getElementById("inputUsdt");
   const outputArs = document.getElementById("outputArs");
   const inputArs = document.getElementById("inputArs");
   const outputUsdt = document.getElementById("outputUsdt");
 
-  inputUsdt.addEventListener("input", () => {
-    outputArs.value = (parseFloat(inputUsdt.value || 0) * usdtArs).toFixed(2);
-  });
+  // Convertir usando parseFloat seguro, reemplazando comas
+  let usdt = parseFloat(inputUsdt.value.replace(",", ".")) || 0;
+  outputArs.value = (usdt * usdtArs).toFixed(2);
 
-  inputArs.addEventListener("input", () => {
-    outputUsdt.value = ((parseFloat(inputArs.value || 0) / usdtArs) || 0).toFixed(3);
-  });
+  let ars = parseFloat(inputArs.value.replace(",", ".")) || 0;
+  outputUsdt.value = (ars / usdtArs).toFixed(3);
+}
+
+// Listeners para actualizar en tiempo real
+document.getElementById("inputUsdt").addEventListener("input", () => {
+  let val = document.getElementById("inputUsdt").value;
+  val = val.replace(/[^0-9.,]/g,''); // permite solo números, punto o coma
+  document.getElementById("inputUsdt").value = val;
+  actualizarCalculadora();
+});
+
+document.getElementById("inputArs").addEventListener("input", () => {
+  let val = document.getElementById("inputArs").value;
+  val = val.replace(/[^0-9.,]/g,''); // permite solo números, punto o coma
+  document.getElementById("inputArs").value = val;
+  actualizarCalculadora();
+});
+
+actualizar();
+setInterval(actualizar, 300000); // cada 5 min
 </script>
+</body>
+</html>
+
 
